@@ -1,16 +1,13 @@
 BorderPatrol
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
-
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
-
+This module is a simple and rather generic throttler that can be used to allow
+or deny anything based on a set threshold of arbitrary criteria.  Although it
+is not very clear, the POD will make more sense when you have a look at it. In
+short, it was designed to prevent DoS attacks on web services and brute-force
+password cracking in web forms, but it can do a lot, lot more.  There is only
+one prerequisite: the storage works with a memcached instance, but could work
+with pretty much any key/value store, provided the get() and set() calls work
+the same way as the memcached modules implement it.
 
 INSTALLATION
 
@@ -42,10 +39,10 @@ You can also look for information at:
     Search CPAN
         http://search.cpan.org/dist/BorderPatrol/
 
-
 LICENSE AND COPYRIGHT
 
 Copyright (C) 2010 David Morel
+Copyright (C) 2010 Booking.com
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
