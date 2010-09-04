@@ -233,7 +233,7 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-use Scalar::Util 'reftype';
+use Scalar::Util qw(reftype blessed);
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -252,11 +252,11 @@ my $memcached_client;
 sub set_client {
 
     my $client = pop;
-    if (   ref $client !~ 'emcache'
+    if (   !blessed($client)
         || !$client->can('set')
         || !$client->can('get') )
     {
-        die "Invalid memcached client object";
+        die "Invalid storage client object";
     }
     return $memcached_client = $client;
 }
