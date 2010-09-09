@@ -3,7 +3,6 @@ package BorderPatrol;
 use warnings;
 use strict;
 
-
 our $VERSION = '0.01';
 our $DEBUG   = 0;
 our $QUIET   = 0;
@@ -69,19 +68,13 @@ sub authorize {
             for my $condition_params ( values %conditions ) {
                 for my $condition_param_key qw(max ttl message value) {
 
-# message & value are strings (or just anything for 'value'), the rest are integers
+                    # message & value are strings (or just anything for 'value'), the rest are integers
                     die
                         "Condition parameter $condition_param_key is '$condition_params->{$condition_param_key}'"
                         if !$condition_params->{$condition_param_key};
-                    die
-                        "Condition parameter $condition_param_key must be positive integer"
-                        if (
-                        (      $condition_param_key eq 'max'
-                            || $condition_param_key eq 'ttl'
-                        )
-                        && $condition_params->{$condition_param_key}
-                        !~ /^[1-9][0-9]*$/
-                        );
+                    die "Condition parameter $condition_param_key must be positive integer"
+                        if ( ( $condition_param_key eq 'max' || $condition_param_key eq 'ttl' )
+                        && $condition_params->{$condition_param_key} !~ /^[1-9][0-9]*$/ );
                 }
             }
             $condition_type = $condition_type_tmp;
@@ -91,8 +84,8 @@ sub authorize {
     die "No conditions defined"
         if !$condition_type;
 
-   # if lockout is defined, use the 'lockout/ban' scheme.  if not, we'll use a
-   # bucket algorithm
+    # if lockout is defined, use the 'lockout/ban' scheme.  if not, we'll use a
+    # bucket algorithm
     my $lockout = $params{lockout};
     die "'Lockout' parameter must be positive integer"
         if ( defined $lockout && $lockout !~ /^[1-9][0-9]*$/ );
@@ -101,50 +94,48 @@ sub authorize {
     die "'Identifier' should be a non-empty string"
         if ( !defined $identifier || length($identifier) < 1 );
 
-   # Loop on the conditions. For 'either', we need to find one that is not yet
-   # satisfied, for 'all' we need to find lockouts for all of them
+    # Loop on the conditions. For 'either', we need to find one that is not yet
+    # satisfied, for 'all' we need to find lockouts for all of them
 
-   # Make the memcached keys a identifier + key name + value
-   # TODO: Retrieve the records in 1 operation with get_multi
-   # @conditions_names = sort keys %conditions;
-   # @keys = map { $_ . '#' . $conditions{$_}->{value} } @conditions_names ) {
+    # Make the memcached keys a identifier + key name + value
+    # TODO: Retrieve the records in 1 operation with get_multi
+    # @conditions_names = sort keys %conditions;
+    # @keys = map { $_ . '#' . $conditions{$_}->{value} } @conditions_names ) {
 
     my ( $conditions_ok, $conditions_unknown ) = ( 0, 0 );
     my $messages_notok = [];
 
     while ( my ( $condition_name, $condition ) = each %conditions ) {
-        my $memcached_key
-            = $identifier . '#' . $condition_name . '#' . $condition->{value};
+        my $memcached_key = $identifier . '#' . $condition_name . '#' . $condition->{value};
 
         my $record = $memcached_client->get($memcached_key);
 
         if ( defined $record ) {
 
-           # Do we have a 'block' value in the record, in which case we return
-           # a message indicating so. The 'block' record will be automatically
-           # removed from memcached at the object's expiry time, so don't
-           # touch it.
+            # Do we have a 'block' value in the record, in which case we return
+            # a message indicating so. The 'block' record will be automatically
+            # removed from memcached at the object's expiry time, so don't
+            # touch it.
             if ( $record eq 'block' ) {
                 push @$messages_notok, $condition->{message};
                 print STDERR "Access already blocked by " . __PACKAGE__ . "\n"
                     if $DEBUG;
             }
 
-          # the object in memcached is a list of timestamps, and nothing else.
+            # the object in memcached is a list of timestamps, and nothing else.
             elsif ( reftype $record eq 'ARRAY' ) {
-                print STDERR "Current timestamps in \$record:  "
-                    . join( '|', @$record ). "\n"
+                print STDERR "Current timestamps in \$record:  " . join( '|', @$record ) . "\n"
 
                     if $DEBUG;
                 print STDERR "Current frozen time: $frozen_time" . "\n"
-if $DEBUG;
+                    if $DEBUG;
 
                 # cleanup the records (remove expired timestamps). This is
                 # where it all happens, giving us this "magic sliding time
                 # window".
                 @$record = grep { $_ > $frozen_time } @$record;
                 print STDERR "Currently unexpired timestamps in \$record:  "
-                    . join( '|', @$record ). "\n"
+                    . join( '|', @$record ) . "\n"
 
                     if $DEBUG;
 
@@ -156,17 +147,16 @@ if $DEBUG;
                 print STDERR "Maximum is "
                     . $condition->{max}
                     . " and current number of timestamps is "
-                    . @$record. "\n"
+                    . @$record . "\n"
 
                     if $DEBUG;
                 if ( @$record >= $condition->{max} ) {
                     print STDERR "Maximum reached" . "\n"
-if $DEBUG;
+                        if $DEBUG;
                     if ($lockout) {
                         print STDERR "Setting a timed lock" . "\n"
-if $DEBUG;
-                        $memcached_client->set( $memcached_key, 'block',
-                            $lockout );
+                            if $DEBUG;
+                        $memcached_client->set( $memcached_key, 'block', $lockout );
                     }
                     push @$messages_notok, $condition->{message};
                 }
@@ -179,11 +169,10 @@ if $DEBUG;
                 # discarded from memcached automatically if it is not updated
                 # before the longest TTL)
                 else {
-                    print STDERR "Adding a timestamp to the list". "\n"
- if $DEBUG;
+                    print STDERR "Adding a timestamp to the list" . "\n"
+                        if $DEBUG;
                     push @$record, $frozen_time + $condition->{ttl};
-                    $memcached_client->set( $memcached_key, $record,
-                        $condition->{ttl} );
+                    $memcached_client->set( $memcached_key, $record, $condition->{ttl} );
                     $conditions_ok++;
                 }
             }
@@ -194,11 +183,10 @@ if $DEBUG;
 
         # $record is undef, either not accessible, or not yet created
         else {
-            print STDERR "No record found, creating a new one". "\n"
- if $DEBUG;
+            print STDERR "No record found, creating a new one" . "\n"
+                if $DEBUG;
             my $ret
-                = $memcached_client->set( $memcached_key,
-                [ $condition->{ttl} + $frozen_time ],
+                = $memcached_client->set( $memcached_key, [ $condition->{ttl} + $frozen_time ],
                 $condition->{ttl} );
             $conditions_ok++;
         }
@@ -206,8 +194,7 @@ if $DEBUG;
 
     if ( $conditions_unknown && !$QUIET ) {
         warn "Unknown conditions count is over 0, this should not happen";
-        print STDERR "Current conditions hash: " . Dumper( \%conditions ). "\n"
-;
+        print STDERR "Current conditions hash: " . Dumper( \%conditions ) . "\n";
     }
 
     # If logic was 'either', 1 'notok' or more should block
@@ -307,7 +294,7 @@ timestamps from the list, and put the list back in memcached.
 
 It is really a simple bucket algorithm, helped by some of memcached's features
 (specifically the automatic cleanup of expired records, particularly useful
-when a ban has been specified). 
+when a ban has been specified).
 
 The interesting thing about it is it can count and throttle anything: if you
 need to restrict access to a DB layer to a certain number of calls per minute

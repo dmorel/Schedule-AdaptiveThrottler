@@ -5,14 +5,18 @@ use warnings;
 use Data::Dumper;
 use BorderPatrol;
 #$BorderPatrol::DEBUG = 1;
-use Cache::Memcached::Fast;
+use t::Util;
 
-use Test::More tests => 9;
+use Test::More;
 
 diag "Testing both flavours of method calls";
 
-my $memcached_client = Cache::Memcached::Fast->new({'servers' => ["127.0.0.1:11211"]})
-    or die "Could not create memcached client";
+my ($memcached_client, $error) = get_test_memcached_client();
+
+plan skip_all => $error if $error;
+
+plan tests => 9;
+
 ok(BorderPatrol->set_client($memcached_client), "Set the memcached client");
 
 my $test_scheme = { all => {
