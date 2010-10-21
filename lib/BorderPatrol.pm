@@ -8,6 +8,7 @@ our $DEBUG   = 0;
 our $QUIET   = 0;
 
 use Scalar::Util qw(reftype blessed);
+use Digest::MD5 qw(md5_hex);
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -107,6 +108,7 @@ sub authorize {
 
     while ( my ( $condition_name, $condition ) = each %conditions ) {
         my $memcached_key = $identifier . '#' . $condition_name . '#' . $condition->{value};
+        $memcached_key = md5_hex($memcached_key) if length $memcached_key > 249;
 
         my $record = $memcached_client->get($memcached_key);
 
