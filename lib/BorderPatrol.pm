@@ -21,32 +21,56 @@ our %EXPORT_TAGS = ( ALL => [ @EXPORT_OK, @EXPORT ] );
 use constant BORDERPATROL_BLOCKED    => 0;
 use constant BORDERPATROL_AUTHORIZED => 1;
 
-my $memcached_client;
+my $memcached_client; # used for the non-OO form
 
 sub set_client {
-
-    my $client = pop;
+    my $client = pop; # keep ordered
+    my $self = shift;
+    die "Invalid storage client object\n"
     if (   !blessed($client)
         || !$client->can('set')
-        || !$client->can('get') )
-    {
-        die "Invalid storage client object";
+        || !$client->can('get') );
+    return $memcached_client = $client if !blessed $self; # non-OO form
+    return $self->{memcached_client} = $client; # Guess what? OO-form
+}
+
+# OO-style
+sub new {
+    my $class = shift;
+    my $params;
+    if ( @_ == 1 ) {
+        if ( ref $_[0] ) {
+            $params = shift;
+        }
+        else {
+            $params->{$memcached_client} = shift;
+        }
     }
-    return $memcached_client = $client;
+    else {
+        $params = %{@_};
+    }
+    my $self = bless $params, $class;
+    $self->set_client( $params->{memcached_client} )
+        if $params->{memcached_client};
+    return $self;
 }
 
 sub authorize {
 
     my %params;
+    my $self;
 
-    # Call it as a method or a sub, with a hash or a hashref
+    # Call it as a method or a sub, with a hash or a hashref,
+    # as a class or an instance
     if ( @_ < 3 ) {
         %params = %{ pop() };
     }
     else {
-        shift if ( @_ % 2 );
+        $self = shift if ( @_ % 2 );
         %params = @_;
     }
+    my $cur_memcached_client
+        = blessed $self ? $self->{memcached_client} : $memcached_client;    # can it get uglier?
 
     my $frozen_time = time;
     my %conditions;
@@ -108,7 +132,7 @@ sub authorize {
     while ( my ( $condition_name, $condition ) = each %conditions ) {
         my $memcached_key = $identifier . '#' . $condition_name . '#' . $condition->{value};
 
-        my $record = $memcached_client->get($memcached_key);
+        my $record = $cur_memcached_client->get($memcached_key);
 
         if ( defined $record ) {
 
@@ -156,7 +180,7 @@ sub authorize {
                     if ($lockout) {
                         print STDERR "Setting a timed lock" . "\n"
                             if $DEBUG;
-                        $memcached_client->set( $memcached_key, 'block', $lockout );
+                        $cur_memcached_client->set( $memcached_key, 'block', $lockout );
                     }
                     push @$messages_notok, $condition->{message};
                 }
@@ -172,7 +196,7 @@ sub authorize {
                     print STDERR "Adding a timestamp to the list" . "\n"
                         if $DEBUG;
                     push @$record, $frozen_time + $condition->{ttl};
-                    $memcached_client->set( $memcached_key, $record, $condition->{ttl} );
+                    $cur_memcached_client->set( $memcached_key, $record, $condition->{ttl} );
                     $conditions_ok++;
                 }
             }
@@ -186,7 +210,7 @@ sub authorize {
             print STDERR "No record found, creating a new one" . "\n"
                 if $DEBUG;
             my $ret
-                = $memcached_client->set( $memcached_key, [ $condition->{ttl} + $frozen_time ],
+                = $cur_memcached_client->set( $memcached_key, [ $condition->{ttl} + $frozen_time ],
                 $condition->{ttl} );
             $conditions_ok++;
         }
@@ -281,6 +305,15 @@ Allow at most 10 connection per second for a robot, but do not ban.
 
     return HTTP_BANDWIDTH_LIMIT_EXCEEDED, '...' if $status == BORDERPATROL_BLOCKED;
 
+=item OO-style
+
+    use BorderPatrol;
+
+    my $borderpatrol = BorderPatrol->new(
+        memcached_client => Cache::Memcached::Fast->new(...));
+
+    my ( $status, $msg ) = $borderpatrol->authorize(...)
+
 =back
 
 =head1 EXPLANATION
@@ -314,7 +347,7 @@ introduces a DoS risk all by itself.
 These methods can be used as functions as well, since they are in the
 @EXPORT_OK list.
 
-=over4
+=over 4
 
 =item set_client
 
@@ -354,6 +387,12 @@ meeting the limits will trigger it.
 Since this is meant to be as non-blocking as possible, failure to communicate
 with the memcached backend will not issue a ban.  The return value of the
 get/set memcached calls could probably benefit from a more clever approach.
+
+=item new
+
+Use the OO-style instead. A BorderPatrol object can be initialized with a
+memcached object as a single argument, a hashref containing parameters (one of
+which optionally being memcached_client) or a hash with the same arguments.
 
 =back
 
