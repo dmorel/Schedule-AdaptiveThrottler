@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use BorderPatrol;
-#$BorderPatrol::DEBUG = 1;
-use t::Util;
+use Schedule::AdaptiveThrottler;
+#$Schedule::AdaptiveThrottler::DEBUG = 1;
+use lib 't';
+use Util;
 
 use Test::More;
 
@@ -17,7 +18,7 @@ plan skip_all => $error if $error;
 
 plan tests => 4;
 
-ok(BorderPatrol->set_client($memcached_client), "Set the memcached client");
+ok(Schedule::AdaptiveThrottler->set_client($memcached_client), "Set the memcached client");
 
 # don't remember which comes first in the key (and too lazy to check now), so
 # make sure any one of the parts goes over the 250 characters threshold
@@ -47,8 +48,8 @@ my $test_scheme_2 = { all => {
 
 $| = 1;
 
-is((BorderPatrol->authorize($test_scheme))[0], BORDERPATROL_AUTHORIZED, "Long key, authorized");
-is((BorderPatrol->authorize($test_scheme))[0], BORDERPATROL_BLOCKED, "Long key, blocked");
+is((Schedule::AdaptiveThrottler->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Long key, authorized");
+is((Schedule::AdaptiveThrottler->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Long key, blocked");
 
 # should be no collision, because of md5sum for long keys
-is((BorderPatrol->authorize($test_scheme_2))[0], BORDERPATROL_AUTHORIZED, "Long key, no collision, authorized");
+is((Schedule::AdaptiveThrottler->authorize($test_scheme_2))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Long key, no collision, authorized");

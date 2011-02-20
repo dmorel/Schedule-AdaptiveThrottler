@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use BorderPatrol;
-#$BorderPatrol::DEBUG = 1;
-use t::Util;
+use Schedule::AdaptiveThrottler;
+#$Schedule::AdaptiveThrottler::DEBUG = 1;
+use lib 't';
+use Util;
 
 use Test::More;
 
@@ -17,7 +18,7 @@ plan skip_all => $error if $error;
 
 plan tests => 9;
 
-ok(BorderPatrol->set_client($memcached_client), "Set the memcached client");
+ok(Schedule::AdaptiveThrottler->set_client($memcached_client), "Set the memcached client");
 
 my $test_scheme = { all => {
     first_test    => {
@@ -34,25 +35,25 @@ $| = 1;
 
 diag "Parameters passed by hashref";
 
-is((BorderPatrol->authorize($test_scheme))[0], BORDERPATROL_AUTHORIZED, "Authorized");
-for (1..4) { BorderPatrol->authorize($test_scheme) }
-is((BorderPatrol->authorize($test_scheme))[0], BORDERPATROL_BLOCKED, "Over threshold, blocked");
+is((Schedule::AdaptiveThrottler->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Authorized");
+for (1..4) { Schedule::AdaptiveThrottler->authorize($test_scheme) }
+is((Schedule::AdaptiveThrottler->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over threshold, blocked");
 sleep 2;
-is((BorderPatrol->authorize($test_scheme))[0], BORDERPATROL_BLOCKED, "Locked out for 3 seconds");
+is((Schedule::AdaptiveThrottler->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Locked out for 3 seconds");
 sleep 2;
-is((BorderPatrol->authorize($test_scheme))[0], BORDERPATROL_AUTHORIZED, "Ban lifted");
+is((Schedule::AdaptiveThrottler->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Ban lifted");
 
 diag "Parameters passed by hash";
 
-is((BorderPatrol->authorize(%$test_scheme))[0], BORDERPATROL_AUTHORIZED, "Authorized");
-for (1..4) { BorderPatrol->authorize(%$test_scheme) }
-is((BorderPatrol->authorize(%$test_scheme))[0], BORDERPATROL_BLOCKED, "Over threshold, blocked");
+is((Schedule::AdaptiveThrottler->authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Authorized");
+for (1..4) { Schedule::AdaptiveThrottler->authorize(%$test_scheme) }
+is((Schedule::AdaptiveThrottler->authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over threshold, blocked");
 sleep 2;
-is((BorderPatrol->authorize(%$test_scheme))[0], BORDERPATROL_BLOCKED, "Locked out for 3 seconds");
+is((Schedule::AdaptiveThrottler->authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Locked out for 3 seconds");
 sleep 2;
-is((BorderPatrol->authorize(%$test_scheme))[0], BORDERPATROL_AUTHORIZED, "Ban lifted");
+is((Schedule::AdaptiveThrottler->authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Ban lifted");
 
 
-#ok(defined BORDERPATROL_BLOCKED, "Block constant defined");
-#ok(defined BORDERPATROL_AUTHORIZED, "Authorize constant defined");
+#ok(defined SCHED_ADAPTHROTTLE_BLOCKED, "Block constant defined");
+#ok(defined SCHED_ADAPTHROTTLE_AUTHORIZED, "Authorize constant defined");
 

@@ -1,9 +1,9 @@
-package BorderPatrol;
+package Schedule::AdaptiveThrottler;
 
 use warnings;
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $DEBUG   = 0;
 our $QUIET   = 0;
 
@@ -14,13 +14,13 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(&authorize &set_client);
 our @EXPORT    = qw(
-    BORDERPATROL_AUTHORIZED
-    BORDERPATROL_BLOCKED
+    SCHED_ADAPTHROTTLE_AUTHORIZED
+    SCHED_ADAPTHROTTLE_BLOCKED
 );
 our %EXPORT_TAGS = ( ALL => [ @EXPORT_OK, @EXPORT ] );
 
-use constant BORDERPATROL_BLOCKED    => 0;
-use constant BORDERPATROL_AUTHORIZED => 1;
+use constant SCHED_ADAPTHROTTLE_BLOCKED    => 0;
+use constant SCHED_ADAPTHROTTLE_AUTHORIZED => 1;
 
 my $memcached_client;
 
@@ -205,13 +205,13 @@ sub authorize {
     # tricky although the logic is correct :(
     if ( $condition_type eq 'either' ) {
         return ( @$messages_notok > 0 )
-            ? ( BORDERPATROL_BLOCKED, $messages_notok )
-            : ( BORDERPATROL_AUTHORIZED, undef );
+            ? ( SCHED_ADAPTHROTTLE_BLOCKED, $messages_notok )
+            : ( SCHED_ADAPTHROTTLE_AUTHORIZED, undef );
     }
     else {    # condition is 'all'
         return ( $conditions_ok == 0 )
-            ? ( BORDERPATROL_BLOCKED, $messages_notok )
-            : ( BORDERPATROL_AUTHORIZED, undef );
+            ? ( SCHED_ADAPTHROTTLE_BLOCKED, $messages_notok )
+            : ( SCHED_ADAPTHROTTLE_AUTHORIZED, undef );
     }
 }
 
@@ -221,7 +221,7 @@ __END__
 
 =head1 NAME
 
-BorderPatrol - Limit resource use, according to arbitrary parameters, using a
+Schedule::AdaptiveThrottler - Limit resource use, according to arbitrary parameters, using a
 bucket algorithm with counters stored in memcached.
 
 =head1 VERSION
@@ -238,11 +238,11 @@ Ban for 5 minutes if more than 5 login attempts for a given username in less
 than a minute, OR if more than 50 login attempts from a single IP addressin
 less than 5 minutes.
 
-    use BorderPatrol;
+    use Schedule::AdaptiveThrottler;
 
-    BorderPatrol->set_client(Cache::Memcached::Fast->new(...));
+    Schedule::AdaptiveThrottler->set_client(Cache::Memcached::Fast->new(...));
 
-    my ( $status, $msg ) = BorderPatrol->authorize(
+    my ( $status, $msg ) = Schedule::AdaptiveThrottler->authorize(
         either => {
             ip    => {
                 max     => 50,
@@ -261,7 +261,7 @@ less than 5 minutes.
         identifier => 'user_logon',
     );
 
-    return HTTP_FORBIDDEN if $status == BORDERPATROL_BLOCKED;
+    return HTTP_FORBIDDEN if $status == SCHED_ADAPTHROTTLE_BLOCKED;
 
     ...
 
@@ -269,7 +269,7 @@ less than 5 minutes.
 
 Allow at most 10 connection per second for a robot, but do not ban.
 
-    my ( $status, $msg ) = BorderPatrol->authorize(
+    my ( $status, $msg ) = Schedule::AdaptiveThrottler->authorize(
         all => {
             'ip_ua' => {
                 max     => 10,
@@ -281,7 +281,7 @@ Allow at most 10 connection per second for a robot, but do not ban.
         identifier => 'robot_connect',
     );
 
-    return HTTP_BANDWIDTH_LIMIT_EXCEEDED, '...' if $status == BORDERPATROL_BLOCKED;
+    return HTTP_BANDWIDTH_LIMIT_EXCEEDED, '...' if $status == SCHED_ADAPTHROTTLE_BLOCKED;
 
 =back
 
@@ -316,7 +316,7 @@ introduces a DoS risk all by itself.
 These methods can be used as functions as well, since they are in the
 @EXPORT_OK list.
 
-=over4
+=over 4
 
 =item set_client
 
@@ -363,9 +363,9 @@ get/set memcached calls could probably benefit from a more clever approach.
 
 =over 4
 
-=item BORDERPATROL_AUTHORIZED
+=item SCHED_ADAPTHROTTLE_AUTHORIZED
 
-=item BORDERPATROL_BLOCKED
+=item SCHED_ADAPTHROTTLE_BLOCKED
 
 =back
 
@@ -396,7 +396,7 @@ locking/DoS conditions mentioned above...)
 
 Please report any bugs or feature requests to C<bug-borderpatrol at
 rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=BorderPatrol>.  I will be
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Schedule::AdaptiveThrottler>.  I will be
 notified, and then you'll automatically be notified of progress on your bug as
 I make changes.
 
@@ -404,7 +404,7 @@ I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc BorderPatrol
+    perldoc Schedule::AdaptiveThrottler
 
 You can also look for information at:
 
@@ -412,19 +412,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=BorderPatrol>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Schedule::AdaptiveThrottler>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/BorderPatrol>
+L<http://annocpan.org/dist/Schedule::AdaptiveThrottler>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/BorderPatrol>
+L<http://cpanratings.perl.org/d/Schedule::AdaptiveThrottler>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/BorderPatrol/>
+L<http://search.cpan.org/dist/Schedule::AdaptiveThrottler/>
 
 =back
 
