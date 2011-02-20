@@ -226,7 +226,7 @@ bucket algorithm with counters stored in memcached.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =head1 SYNOPSIS
 
@@ -430,11 +430,19 @@ L<http://search.cpan.org/dist/Schedule::AdaptiveThrottler/>
 
 =head1 ACKNOWLEDGEMENTS
 
-Philippe "BooK" Bruhat
-Dennis Kaarsemaker
-Kristian Köhntopp
-Elizabeth Mattijsen
-Ruud Van Tol
+=over 4
+
+=item Philippe "BooK" Bruhat
+
+=item Dennis Kaarsemaker
+
+=item Kristian Köhntopp
+
+=item Elizabeth Mattijsen
+
+=item Ruud Van Tol
+
+=back
 
 This module really is the product of collective thinking.
 
