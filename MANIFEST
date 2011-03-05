@@ -2,12 +2,15 @@ Changes
 MANIFEST
 Makefile.PL
 README
-lib/BorderPatrol.pm
+lib/Schedule/AdaptiveThrottler.pm
 t/00-load.t
 t/10-import.t
 t/20-init.t
 t/30-basic-function.t
 t/40-basic-method.t
+t/50-longkeys.t
+t/Util.pm
+t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t

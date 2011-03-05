@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 use Data::Dumper;
-use BorderPatrol qw(:ALL);
-#$BorderPatrol::DEBUG = 1;
-use t::Util;
+use Schedule::AdaptiveThrottler qw(:ALL);
+#$Schedule::AdaptiveThrottler::DEBUG = 1;
+use lib 't';
+use Util;
 
 use Test::More;
 
@@ -32,24 +33,24 @@ my $test_scheme = { all => {
 
 diag "parameters passed by hashref";
 
-is((authorize($test_scheme))[0], BORDERPATROL_AUTHORIZED, "Authorized");
+is((authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Authorized");
 for (1..4) { authorize($test_scheme) }
-is((authorize($test_scheme))[0], BORDERPATROL_BLOCKED, "Over threshold, blocked");
+is((authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over threshold, blocked");
 sleep 2;
-is((authorize($test_scheme))[0], BORDERPATROL_BLOCKED, "Locked out for 3 seconds");
+is((authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Locked out for 3 seconds");
 sleep 2;
-is((authorize($test_scheme))[0], BORDERPATROL_AUTHORIZED, "Ban lifted");
+is((authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Ban lifted");
 
 diag "parameters passed by hash";
 
-is((authorize(%$test_scheme))[0], BORDERPATROL_AUTHORIZED, "Authorized");
+is((authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Authorized");
 for (1..3) { authorize($test_scheme) }
-is((authorize(%$test_scheme))[0], BORDERPATROL_BLOCKED, "Over threshold, blocked");
+is((authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over threshold, blocked");
 sleep 2;
-is((authorize(%$test_scheme))[0], BORDERPATROL_BLOCKED, "Locked out for 3 seconds");
+is((authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Locked out for 3 seconds");
 sleep 2;
-is((authorize(%$test_scheme))[0], BORDERPATROL_AUTHORIZED, "Ban lifted");
+is((authorize(%$test_scheme))[0], SCHED_ADAPTHROTTLE_AUTHORIZED, "Ban lifted");
 
-#ok(defined BORDERPATROL_BLOCKED, "Block constant defined");
-#ok(defined BORDERPATROL_AUTHORIZED, "Authorize constant defined");
+#ok(defined SCHED_ADAPTHROTTLE_BLOCKED, "Block constant defined");
+#ok(defined SCHED_ADAPTHROTTLE_AUTHORIZED, "Authorize constant defined");
 

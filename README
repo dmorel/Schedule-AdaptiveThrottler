@@ -1,4 +1,4 @@
-BorderPatrol
+Schedule::AdaptiveThrottler
 
 This module is a simple and rather generic throttler that can be used to allow
 or deny anything based on a set threshold of arbitrary criteria.  Although it
@@ -18,26 +18,32 @@ To install this module, run the following commands:
 	make test
 	make install
 
+To test properly you will need to access a real memcached server. On a Unix
+box, it can be as simple as running:
+    
+    memcached -d
+    MEMCACHED_SERVERS=localhost:11211 make test
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc BorderPatrol
+    perldoc Schedule::AdaptiveThrottler
 
 You can also look for information at:
 
     RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=BorderPatrol
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Schedule::AdaptiveThrottler
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/BorderPatrol
+        http://annocpan.org/dist/Schedule::AdaptiveThrottler
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/BorderPatrol
+        http://cpanratings.perl.org/d/Schedule::AdaptiveThrottler
 
     Search CPAN
-        http://search.cpan.org/dist/BorderPatrol/
+        http://search.cpan.org/dist/Schedule::AdaptiveThrottler/
 
 LICENSE AND COPYRIGHT
 
