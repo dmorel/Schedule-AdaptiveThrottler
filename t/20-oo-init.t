@@ -24,9 +24,7 @@ my $test_scheme;
 
 #########################################
 
-diag "Initialize with empty parameters";
-
-ok($SAT = Schedule::AdaptiveThrottler->new(), "Create instance");
+ok($SAT = Schedule::AdaptiveThrottler->new(), "Create instance (empty arglist)");
 ok($SAT->set_client($memcached_client), "Set the memcached client");
 
 $test_scheme = { all => {
@@ -48,9 +46,7 @@ is(($SAT->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over thresho
 
 #########################################
 
-diag "Initialize with memcached instance";
-
-ok($SAT = Schedule::AdaptiveThrottler->new($memcached_client), "Create instance with client");
+ok($SAT = Schedule::AdaptiveThrottler->new($memcached_client), "Create instance with client (single arg)");
 
 $test_scheme = { all => {
     first_test    => {
@@ -70,8 +66,6 @@ for (1..4) { $SAT->authorize($test_scheme) }
 is(($SAT->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over threshold, blocked");
 
 #########################################
-
-diag "Initialize with hash";
 
 ok($SAT = Schedule::AdaptiveThrottler->new(memcached_client => $memcached_client), "Create instance with client (hash)");
 
@@ -93,8 +87,6 @@ for (1..4) { $SAT->authorize($test_scheme) }
 is(($SAT->authorize($test_scheme))[0], SCHED_ADAPTHROTTLE_BLOCKED, "Over threshold, blocked");
 
 #########################################
-
-diag "Initialize with hashref";
 
 ok($SAT = Schedule::AdaptiveThrottler->new({memcached_client => $memcached_client}), "Create instance with client (hashref)");
 
