@@ -48,7 +48,7 @@ sub new {
         }
     }
     else {
-        $params = %{@_};
+        $params = { @_ };
     }
     my $self = bless $params, $class;
     $self->set_client( $params->{memcached_client} )
@@ -60,11 +60,11 @@ sub authorize {
 
     my %params;
     my $self;
-
     # Call it as a method or a sub, with a hash or a hashref,
     # as a class or an instance
     if ( @_ < 3 ) {
         %params = %{ pop() };
+        $self = shift;
     }
     else {
         $self = shift if ( @_ % 2 );
