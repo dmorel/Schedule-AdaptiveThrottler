@@ -16,11 +16,11 @@ my ($memcached_client, $error) = get_test_memcached_client();
 
 plan skip_all => $error if $error;
 
-plan tests => 9;
+plan tests => 4;
 
 my $sat;
 ok( $sat = Schedule::AdaptiveThrottler->new( memcached_client => $memcached_client ),
-    "Created the BorderPatrol object" );
+    "Create the object" );
 
 # don't remember which comes first in the key (and too lazy to check now), so
 # make sure any one of the parts goes over the 250 characters threshold
