@@ -3,7 +3,7 @@ package Schedule::AdaptiveThrottler;
 use warnings;
 use strict;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $DEBUG   = 0;
 our $QUIET   = 0;
 
@@ -22,17 +22,17 @@ our %EXPORT_TAGS = ( ALL => [ @EXPORT_OK, @EXPORT ] );
 use constant SCHED_ADAPTHROTTLE_BLOCKED    => 0;
 use constant SCHED_ADAPTHROTTLE_AUTHORIZED => 1;
 
-my $memcached_client; # used for the non-OO form
+my $memcached_client;    # used for the non-OO form
 
 sub set_client {
-    my $client = pop; # keep ordered
-    my $self = shift;
+    my $client = pop;     # keep ordered
+    my $self   = shift;
     die "Invalid storage client object\n"
-    if (   !blessed($client)
+        if ( !blessed($client)
         || !$client->can('set')
         || !$client->can('get') );
-    return $memcached_client = $client if !blessed $self; # non-OO form
-    return $self->{memcached_client} = $client; # Guess what? OO-form
+    return $memcached_client = $client if !blessed $self;    # non-OO form
+    return $self->{memcached_client} = $client;              # Guess what? OO-form
 }
 
 # OO-style
@@ -40,15 +40,15 @@ sub new {
     my $class = shift;
     my $params;
     if ( @_ == 1 ) {
-        if ( ref $_[0] ) {
+        if ( !blessed $_[0] ) {
             $params = shift;
         }
         else {
-            $params->{$memcached_client} = shift;
+            $params->{memcached_client} = shift;
         }
     }
     else {
-        $params = { @_ };
+        $params = {@_};
     }
     my $self = bless $params, $class;
     $self->set_client( $params->{memcached_client} )
@@ -60,11 +60,12 @@ sub authorize {
 
     my %params;
     my $self;
+
     # Call it as a method or a sub, with a hash or a hashref,
     # as a class or an instance
     if ( @_ < 3 ) {
         %params = %{ pop() };
-        $self = shift;
+        $self   = shift;
     }
     else {
         $self = shift if ( @_ % 2 );
@@ -212,7 +213,8 @@ sub authorize {
             print STDERR "No record found, creating a new one" . "\n"
                 if $DEBUG;
             my $ret
-                = $cur_memcached_client->set( $memcached_key, [ $condition->{ttl} + $frozen_time ],
+                = $cur_memcached_client->set( $memcached_key,
+                [ $condition->{ttl} + $frozen_time ],
                 $condition->{ttl} );
             $conditions_ok++;
         }
@@ -245,14 +247,16 @@ __END__
 
 =head1 NAME
 
-Schedule::AdaptiveThrottler - Limit resource use, according to arbitrary parameters, using a
-bucket algorithm with counters stored in memcached.
+Schedule::AdaptiveThrottler - Throttle just about anything with ease
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =head1 SYNOPSIS
+
+Limit resource use, according to arbitrary parameters, using a bucket algorithm
+with counters stored in memcached.
 
 =over 4
 
@@ -309,12 +313,12 @@ Allow at most 10 connection per second for a robot, but do not ban.
 
 =item OO-style
 
-    use BorderPatrol;
+    use Schedule::AdaptiveThrottler;
 
-    my $borderpatrol = BorderPatrol->new(
+    my $SAT = Schedule::AdaptiveThrottler->new(
         memcached_client => Cache::Memcached::Fast->new(...));
 
-    my ( $status, $msg ) = $borderpatrol->authorize(...)
+    my ( $status, $msg ) = $SAT->authorize(...)
 
 =back
 
@@ -392,9 +396,10 @@ get/set memcached calls could probably benefit from a more clever approach.
 
 =item new
 
-Use the OO-style instead. A BorderPatrol object can be initialized with a
-memcached object as a single argument, a hashref containing parameters (one of
-which optionally being memcached_client) or a hash with the same arguments.
+Use the OO-style instead. A Schedule::AdaptiveThrottler object can be
+initialized with a memcached object as a single argument, a hashref containing
+parameters (one of which optionally being memcached_client) or a hash with the
+same arguments.
 
 =back
 
@@ -433,11 +438,11 @@ locking/DoS conditions mentioned above...)
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-borderpatrol at
-rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Schedule::AdaptiveThrottler>.  I will be
-notified, and then you'll automatically be notified of progress on your bug as
-I make changes.
+Please report any bugs or feature requests to C<bug-schedule-adaptivethrottler
+at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Schedule::AdaptiveThrottler>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
 
 =head1 SUPPORT
 
