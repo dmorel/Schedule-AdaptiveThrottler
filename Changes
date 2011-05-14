@@ -1,5 +1,8 @@
 Revision history for Schedule::AdaptiveThrottler
 
+0.04    2011-05-14
+        Added MockMemcached object to allow for testing without a memcached server
+
 0.03    2011-03-17
         Merged OO interface
 

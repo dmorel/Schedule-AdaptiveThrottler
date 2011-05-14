@@ -3,7 +3,7 @@ package Schedule::AdaptiveThrottler;
 use warnings;
 use strict;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our $DEBUG   = 0;
 our $QUIET   = 0;
 
@@ -251,7 +251,7 @@ Schedule::AdaptiveThrottler - Throttle just about anything with ease
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 SYNOPSIS
 
